@@ -1,0 +1,10 @@
+{
+	"greetings": "Hello",
+	"number": 12,
+	"employees":{
+		"name": "Jo",
+		"age": 25,
+		"maritalStatus": "married",
+		"avaiolableOnWeekends": false
+	}
+}

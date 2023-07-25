@@ -1,5 +1,206 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="61c70ae3-fc6a-4484-a1a6-5f427d7a60f2" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="7e0e167d-072e-45c8-988d-a220cbc64502" >
+		<db:my-sql-connection host="127.0.0.1" port="3306" user="root" password="Badab00m" database="Employees" />
+	</db:config>
+	<flow name="dataweave_1Flow" doc:id="6749b0b8-331f-4656-9a52-5ae866110e7c" >
+		<ee:transform doc:name="Transform Message" doc:id="d8e61726-3587-430a-b7c8-65d56b7ec3ef" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="jsonToXml" ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	/*Transform JSON Input to XML Output*/
+	"myString": "Hello World"
+}]]></ee:set-variable>
+				<ee:set-variable variableName="concatenate" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	/*Concatenate Two Strings into a Single String*/
+	myString: ("hello" ++ "World"),
+}]]></ee:set-variable>
+				<ee:set-variable variableName="dataTypes" ><![CDATA[%dw 2.0
+output application/json
+---
+/*Supported Data Types*/
+{
+	/*1*/myString: "Hello World",
+	/*2*/myNumber: 123,
+	/*3*/myFlaot: 123.456,
+	/*4*/myVeryBigNumber: 123456789123456789123456789123456789123456789,
+	/*5*/myDate: '2023-14-07',
+	/*6*/myTime: |01:30:23|,
+	/*7*/myDateTime: |2018-10-01T23:57:34-03:00|,
+	/*8*/myBoolean: true,
+	/*9*/myArray: [1,2,3,4,5,6],
+	/*10*/myMixedArray: [1,2,"three",{name: "Marc"}],
+	/*11*/myObjectValuePair: {innerKey: "innerValue"},
+	/*12*/myObjectWithConditionalField: { a : { b : 1, ( c : 2 ) if true, (d : 4) if false } },
+	/*13*/myNull: null,
+	/*14*/myBinary: "abcdefg123456" as Binary,
+	//one line comment
+}]]></ee:set-variable>
+				<ee:set-variable variableName="dataweaveVariales" ><![CDATA[%dw 2.0
+var myJson = {"hello": "world"}
+output application/json
+---
+myJson]]></ee:set-variable>
+				<ee:set-variable variableName="dwFunction_In_dwVariable" ><![CDATA[%dw 2.0
+var myJson = {
+	a: avg([1, 100]),
+	b: avg([1,2,3])
+}
+output application/json
+---
+myJson
+]]></ee:set-variable>
+				<ee:set-variable variableName="dwFunction_In_dwVariable_1" ><![CDATA[%dw 2.0
+/* Use a DataWeave Function in a DataWeave Variable */
+var myJson = {
+	a: avg([1, 100]),
+	b: avg([1,2,3])
+}
+
+var myJson1 = {
+	c: avg([1100, 100]),
+	d: avg([-41,2,300])
+} 
+output application/json
+---
+myJson1 ++ myJson
+]]></ee:set-variable>
+				<ee:set-variable variableName="read_Transform_SelectContent_from_Input" ><![CDATA[%dw 2.0
+var myRead = read("<car><color>red</color></car>", "application/xml")
+output application/json
+---
+{
+	carColor: myRead.car
+}]]></ee:set-variable>
+				<ee:set-variable variableName="Read_File_Contents_with_a_DataWeave_Function" ><![CDATA[%dw 2.0
+output application/json
+---
+readUrl("classpath://myJson.json")
+]]></ee:set-variable>
+				<ee:set-variable variableName="Map_Elements_from_an_Array_into_an_Object" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	(
+		["a","b","c","d "] map ((value, index)->{(index): value})
+	)
+}]]></ee:set-variable>
+				<ee:set-variable variableName="pluck_Elements_from_an_Object_into_an_Array" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"0": "a",
+	"1": "b",
+	"2": "c",
+	"3": "d"
+}pluck((value)->value)]]></ee:set-variable>
+				<ee:set-variable variableName="Map_and_Merge_Fields" ><![CDATA[%dw 2.0
+/*Map_and_Merge_Fields */
+var myVar =[
+	{
+		bookId: 101,
+		title: "The compound effect",
+		price: "29.99"
+	},
+	{
+		bookId: 102,
+		title: "Rich dad, poor dad",
+		price: "39.99"
+	}
+]
+var myVar1 =[
+	{
+		bookId: 101,
+		author: "Darren Hardy",
+	},
+	{
+		bookId: 102,
+		author: "Alex Wang",
+	}
+]
+output application/json
+---
+myVar map (item, index) -> using (id = item.bookId) {
+	"id": id,
+	"topic": item.title,
+	"cost": item.price as Number,
+	(myVar1 filter ($.*bookId contains id) map (item) -> {author: item.author})
+}]]></ee:set-variable>
+				<ee:set-variable variableName="Map_and_Merge_Fields_2" ><![CDATA[%dw 2.0
+/*Map_and_Merge_Fields using (index, value)*/
+var myVar =[
+	{
+		bookId: 101,
+		title: "The compound effect",
+		price: "29.99"
+	},
+	{
+		bookId: 102,
+		title: "Rich dad, poor dad",
+		price: "39.99"
+	}
+]
+var myVar1 =[
+	{
+		bookId: 101,
+		author: "Darren Hardy",
+	},
+	{
+		bookId: 102,
+		author: "Alex Wang",
+	}
+]
+output application/json
+---
+myVar map (index, value) -> using (id = index.bookId) {
+	"id": id,
+	"topic": index.title,
+	"cost": index.price as Number,
+	(myVar1 filter ($.*bookId contains id) map (index) -> {author: index.author})
+}]]></ee:set-variable>
+				<ee:set-variable variableName="Short_Payloads" ><![CDATA[%dw 2.0
+var myInput = read("<root>
+						<order>
+							<items>1</items>
+							<items>3</items>
+						</order>
+						<order>
+							<items>2</items>
+						</order>
+					</root>","application/xml")
+output application/json
+---
+ContainsRequestedItem: myInput.root.*order.*items contains "3"]]></ee:set-variable>
+				<ee:set-variable variableName="xmlDataweave" ><![CDATA[%dw 2.0
+var conversionRate=13.15
+output application/json
+---
+{
+ price_dollars: payload.price,
+ price_localCurrency: payload.price * conversionRate
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+</mule>
